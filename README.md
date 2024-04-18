@@ -534,7 +534,6 @@ $
 
 ## For PostgREST the swagger output is at the root of the service
 
-
 You can use `curl -X GET` to access it:
 ```bash
 wink@3900x 24-04-18T17:56:53.817Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
@@ -600,6 +599,93 @@ $ tail -20 PostgREST.json
 wink@3900x 24-04-18T18:14:41.734Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
 ```
 
+## Use the PostgREST API to modify the database
+
+API_PORT=32802; curl -X POST -H "content-type: application/json" http://127.0.0.1:$API_PORT/actor --data '{"first_name": "Kevin", "last_name": "Bacon"}'
+
+### Set API_PORT for the `api` service
+
+```bash
+kt enclave inspect kurtosis-postgreswink@3900x 24-04-18T20:26:47.471Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
+$ kt enclave inspect kurtosis-postgres
+Name:            kurtosis-postgres
+UUID:            9c93d04ba13b
+Status:          RUNNING
+Creation Time:   Thu, 18 Apr 2024 12:57:34 PDT
+Flags:           
+
+========================================= Files Artifacts =========================================
+UUID           Name
+38d255fc527f   winter-ivy
+
+========================================== User Services ==========================================
+UUID           Name       Ports                                                Status
+bb9e41a2ce36   api        http: 3000/tcp -> http://127.0.0.1:32802             RUNNING
+6e5794a11575   postgres   postgres: 5432/tcp -> postgresql://127.0.0.1:32801   RUNNING
+
+wink@3900x 24-04-18T20:27:04.962Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
+$ API_PORT=32802
+wink@3900x 24-04-18T20:27:23.182Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
+```
+
+### Query the database for actors with the first name of "Kevin"
+
+```bash
+wink@3900x 24-04-18T20:27:23.182Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
+$ curl -X GET "http://localhost:$API_PORT/actor?first_name=eq.Kevin" | jq
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   199    0   199    0     0  10874      0 --:--:-- --:--:-- --:--:-- 11055
+[
+  {
+    "actor_id": 25,
+    "first_name": "Kevin",
+    "last_name": "Bloom",
+    "last_update": "2013-05-26T14:47:57.62"
+  },
+  {
+    "actor_id": 127,
+    "first_name": "Kevin",
+    "last_name": "Garland",
+    "last_update": "2013-05-26T14:47:57.62"
+  }
+]
+wink@3900x 24-04-18T20:29:03.376Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
+```
+
+### Add an actor
+
+Adding Kevin Bacon to the database and now there will be 3 entries:
+```bash
+wink@3900x 24-04-18T20:29:03.376Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
+$ curl -X POST -H "content-type: application/json" http://127.0.0.1:$API_PORT/actor --data '{"first_name": "Kevin", "last_name": "Bacon"}'
+wink@3900x 24-04-18T20:30:36.197Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
+$ curl -X GET "http://localhost:$API_PORT/actor?first_name=eq.Kevin" | jq
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   303    0   303    0     0   120k      0 --:--:-- --:--:-- --:--:--  147k
+[
+  {
+    "actor_id": 25,
+    "first_name": "Kevin",
+    "last_name": "Bloom",
+    "last_update": "2013-05-26T14:47:57.62"
+  },
+  {
+    "actor_id": 127,
+    "first_name": "Kevin",
+    "last_name": "Garland",
+    "last_update": "2013-05-26T14:47:57.62"
+  },
+  {
+    "actor_id": 201,
+    "first_name": "Kevin",
+    "last_name": "Bacon",
+    "last_update": "2024-04-18T20:30:36.178571"
+  }
+]
+wink@3900x 24-04-18T20:30:43.248Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
+```
 
 ## License
 
