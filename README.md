@@ -2,36 +2,48 @@
 
 From: https://docs.kurtosis.com/quickstart-write-a-package/
 
-Questions:
- * Is there a built in way to export a services name and ports to an environment variable so that if I created an enclave, test1, I could do a GET with something like `curl -X GET "http://localhost:$test1-api-port/actor?first_name=eq.Kevin"` and the `-port` name could be supplied in the "plan"
+> Note: I've added `alias kt='kurtosis'` to my `.bashrc` so I
+can use `kt` instead of `kurtosis` in the command lines below.
 
 ## Initialize a trivial package
 
 ### Step 1: Create a new directory for your package
 
 ```bash
-mkdir kurtosis-postgres && cd kurtosis-postgres
+mkdir kt-postgres && cd kt-postgres
 ```
 
-### Step 2: Run the Kurtosis CLI to create a new package
+### Step 2: Initialise a new package
 
 Running the init creates kurtosis.yml and main.star
 ```bash
-wink@3900x 24-04-18T15:01:45.188Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-$ kurtosis package init 
-wink@3900x 24-04-18T15:01:53.776Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-$ ls
-kurtosis.yml  main.star
-wink@3900x 24-04-18T15:01:55.333Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
+wink@3900x 24-04-18T23:24:36.126Z:~/prgs/kt/wyfp/kt-postgres (main)
+$ kt package init
+wink@3900x 24-04-18T23:24:54.380ZZ:~/prgs/kt/wyfp/kt-postgres (main)
+$ ls -l
+total 8
+-rw-r--r-- 1 wink users 151 Apr 19 10:44 kurtosis.yml
+-rw-r--r-- 1 wink users  56 Apr 19 10:44 main.star
+wink@3900x 24-04-18T23:25:13.338Z:~/prgs/kt/wyfp/kt-postgres (main)
+$ cat kurtosis.yml 
+name: github.com/example-org/example-package
+description: |-
+  # github.com/example-org/example-package
+  Enter description Markdown here.
+replace: {}
+wink@3900x 24-04-18T23:25:18.704Z:~/prgs/kt/wyfp/kt-postgres (main)
+$ cat main.star 
+def run(plan):
+    # TODO
+    plan.print("hello world!")
 ```
-
-### Step 3: Run the enclave
 
 Which simply prints a message "hello world!" and exits:
 ```bash
-$ kurtosis run --enclave kurtosis-postgres main.star 
-INFO[2024-04-18T07:51:14-07:00] Creating a new enclave for Starlark to run inside... 
-INFO[2024-04-18T07:51:26-07:00] Enclave 'kurtosis-postgres' created successfully 
+wink@3900x 24-04-18T23:28:35.140Z:~/prgs/kt/wyfp/kt-postgres (main)
+$ kt run --enclave kt-progress main.star
+INFO[2024-04-18T16:29:41-07:00] Creating a new enclave for Starlark to run inside... 
+INFO[2024-04-18T16:29:43-07:00] Enclave 'kt-progress' created successfully   
 
 Printing a message
 hello world!
@@ -39,13 +51,13 @@ hello world!
 Starlark code successfully run. No output was returned.
 
 ⭐ us on GitHub - https://github.com/kurtosis-tech/kurtosis
-INFO[2024-04-18T07:51:28-07:00] ========================================================== 
-INFO[2024-04-18T07:51:28-07:00] ||          Created enclave: kurtosis-postgres          || 
-INFO[2024-04-18T07:51:28-07:00] ========================================================== 
-Name:            kurtosis-postgres
-UUID:            a6116c2fb2ce
+INFO[2024-04-18T16:29:45-07:00] ==================================================== 
+INFO[2024-04-18T16:29:45-07:00] ||          Created enclave: kt-progress          || 
+INFO[2024-04-18T16:29:45-07:00] ==================================================== 
+Name:            kt-progress
+UUID:            0bd919c50f09
 Status:          RUNNING
-Creation Time:   Thu, 18 Apr 2024 07:51:14 PDT
+Creation Time:   Thu, 18 Apr 2024 16:29:41 PDT
 Flags:           
 
 ========================================= Files Artifacts =========================================
@@ -54,7 +66,6 @@ UUID   Name
 ========================================== User Services ==========================================
 UUID   Name   Ports   Status
 
-wink@3900x 24-04-18T14:51:28.671Z:~/prgs/kt/wyfp/kurtosis-postgres
 ```
 
 ## Change the enclave to run a Postgres container
@@ -62,24 +73,17 @@ wink@3900x 24-04-18T14:51:28.671Z:~/prgs/kt/wyfp/kurtosis-postgres
 ### Step 1: Remove the "Hello World" enclave
 
 ```bash
-wink@3900x 24-04-18T15:14:48.755Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
+wink@3900x 24-04-18T23:30:43.340Z:~/prgs/kt/wyfp/kt-postgres (main)
 $ kt enclave ls
-UUID           Name                Status     Creation Time
-892c40a2837a   kurtosis-postgres   RUNNING    Thu, 18 Apr 2024 08:04:23 PDT
-wink@3900x 24-04-18T15:14:54.532Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-$ kt clean -a
-INFO[2024-04-18T08:15:04-07:00] Cleaning old Kurtosis engine containers...   
-INFO[2024-04-18T08:15:04-07:00] Successfully cleaned old Kurtosis engine containers 
-INFO[2024-04-18T08:15:04-07:00] Cleaning enclaves...                         
-INFO[2024-04-18T08:15:05-07:00] Successfully removed the following enclaves: 
-892c40a2837a4948aac510b66dd19e9e	kurtosis-postgres
-INFO[2024-04-18T08:15:05-07:00] Successfully cleaned enclaves                
-INFO[2024-04-18T08:15:05-07:00] Cleaning unused images...                    
-INFO[2024-04-18T08:15:05-07:00] Successfully cleaned unused images           
-wink@3900x 24-04-18T15:15:05.165Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
+UUID           Name          Status     Creation Time
+0bd919c50f09   kt-progress   RUNNING    Thu, 18 Apr 2024 16:29:41 PDT
+wink@3900x 24-04-18T23:31:51.692Z:~/prgs/kt/wyfp/kt-postgres (main)
+$ kt enclave rm -f kt-progress 
+INFO[2024-04-18T16:32:07-07:00] Destroying enclaves...                       
+INFO[2024-04-18T16:32:08-07:00] Enclaves successfully destroyed              
+wink@3900x 24-04-18T23:32:08.873Z:~/prgs/kt/wyfp/kt-postgres (main)
 $ kt enclave ls
 UUID   Name   Status   Creation Time
-wink@3900x 24-04-18T15:15:08.039Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
 ```
 
 ### Step 2: Change main.star to create a plan for a postgres container
@@ -108,31 +112,66 @@ def run(plan, args):
     )
 ```
 
+```diff
+wink@3900x 24-04-18T23:33:27.609Z:~/prgs/kt/wyfp/kt-postgres (main)
+$  git diff
+diff --git a/main.star b/main.star
+index f547a9c..47697c3 100644
+--- a/main.star
++++ b/main.star
+@@ -1,3 +1,22 @@
+-def run(plan):
+-    # TODO
+-    plan.print("hello world!")
+\ No newline at end of file
++POSTGRES_PORT_ID = "postgres"
++POSTGRES_DB = "app_db"
++POSTGRES_USER = "app_user"
++POSTGRES_PASSWORD = "password"
++
++def run(plan, args):
++    # Add a Postgres server
++    postgres = plan.add_service(
++        name = "postgres",
++        config = ServiceConfig(
++            image = "postgres:15.2-alpine",
++            ports = {
++                POSTGRES_PORT_ID: PortSpec(5432, application_protocol = "postgresql"),
++            },
++            env_vars = {
++                "POSTGRES_DB": POSTGRES_DB,
++                "POSTGRES_USER": POSTGRES_USER,
++                "POSTGRES_PASSWORD": POSTGRES_PASSWORD,
++            },
++        ),
++    )
+```
+
 ### Step 3: Run the enclave
 
-The enclave it build and is running:
+The run the new main.star file in the enclave:
 ```bash
-wink@3900x 24-04-18T15:20:10.132Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-$ kurtosis run --enclave kurtosis-postgres main.star
-INFO[2024-04-18T08:21:36-07:00] Creating a new enclave for Starlark to run inside... 
-INFO[2024-04-18T08:21:37-07:00] Enclave 'kurtosis-postgres' created successfully 
+wink@3900x 24-04-18T23:33:39.997Z:~/prgs/kt/wyfp/kt-postgres (main)
+$ kt run --enclave kt-progres main.star
+INFO[2024-04-18T16:35:38-07:00] Creating a new enclave for Starlark to run inside... 
+INFO[2024-04-18T16:35:40-07:00] Enclave 'kt-progres' created successfully    
 
 Container images used in this run:
 > postgres:15.2-alpine - locally cached
 
 Adding service with name 'postgres' and image 'postgres:15.2-alpine'
-Service 'postgres' added with service UUID '0f387558a69345728f960705ae604def'
+Service 'postgres' added with service UUID '08ecf18783c049d89cba48308a464c55'
 
 Starlark code successfully run. No output was returned.
 
 ⭐ us on GitHub - https://github.com/kurtosis-tech/kurtosis
-INFO[2024-04-18T08:21:41-07:00] ========================================================== 
-INFO[2024-04-18T08:21:41-07:00] ||          Created enclave: kurtosis-postgres          || 
-INFO[2024-04-18T08:21:41-07:00] ========================================================== 
-Name:            kurtosis-postgres
-UUID:            f4994a5bc34f
+INFO[2024-04-18T16:35:44-07:00] =================================================== 
+INFO[2024-04-18T16:35:44-07:00] ||          Created enclave: kt-progres          || 
+INFO[2024-04-18T16:35:44-07:00] =================================================== 
+Name:            kt-progres
+UUID:            9beb39150242
 Status:          RUNNING
-Creation Time:   Thu, 18 Apr 2024 08:21:36 PDT
+Creation Time:   Thu, 18 Apr 2024 16:35:38 PDT
 Flags:           
 
 ========================================= Files Artifacts =========================================
@@ -140,17 +179,15 @@ UUID   Name
 
 ========================================== User Services ==========================================
 UUID           Name       Ports                                                Status
-0f387558a693   postgres   postgres: 5432/tcp -> postgresql://127.0.0.1:32776   RUNNING
-
-wink@3900x 24-04-18T15:21:41.626Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
+08ecf18783c0   postgres   postgres: 5432/tcp -> postgresql://127.0.0.1:32813   RUNNING
 ```
 
 And we also see it using `enclave ls`:
 ```
+wink@3900x 24-04-18T23:35:44.374Z:~/prgs/kt/wyfp/kt-postgres (main)
 $ kt enclave ls
-UUID           Name                Status     Creation Time
-f4994a5bc34f   kurtosis-postgres   RUNNING    Thu, 18 Apr 2024 08:21:36 PDT
-wink@3900x 24-04-18T15:22:24.055Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
+UUID           Name         Status     Creation Time
+9beb39150242   kt-progres   RUNNING    Thu, 18 Apr 2024 16:35:38 PDT
 ```
 
 ## Change enclave plan to build and populate the database
@@ -208,10 +245,10 @@ def run(plan, args):
 
 The diff is:
 ```diff
-wink@3900x 24-04-18T15:32:09.611Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-$ git --no-pager diff main.star
+wink@3900x 24-04-18T23:38:49.789Z:~/prgs/kt/wyfp/kt-postgres (main)
+$ git diff
 diff --git a/main.star b/main.star
-index 0561e05..c2af180 100644
+index 47697c3..8f3f147 100644
 --- a/main.star
 +++ b/main.star
 @@ -1,9 +1,16 @@
@@ -231,7 +268,7 @@ index 0561e05..c2af180 100644
      # Add a Postgres server
      postgres = plan.add_service(
          name = "postgres",
-@@ -17,5 +24,19 @@ def run(plan, args):
+@@ -17,6 +24,20 @@ def run(plan, args):
                  "POSTGRES_USER": POSTGRES_USER,
                  "POSTGRES_PASSWORD": POSTGRES_PASSWORD,
              },
@@ -240,7 +277,7 @@ index 0561e05..c2af180 100644
 +            }
          ),
      )
-+
+ 
 +    # Load the data into Postgres
 +    postgres_flags = ["-U", POSTGRES_USER,"-d", POSTGRES_DB]
 +    plan.exec(
@@ -253,7 +290,7 @@ index 0561e05..c2af180 100644
 +    )
 ```
 
-### Step 2: Clean and re-run the enclave
+### Step 2: Remove and re-run the enclave
 
 The result will be a new enclave with the database populated.
 
@@ -262,30 +299,24 @@ has a `kurtosis.yml` file and therefore is a kurtosis package.
 
 
 ```bash
-wink@3900x 24-04-18T15:34:02.861Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-$ kurtosis clean -a && kurtosis run --enclave kurtosis-postgres .
-INFO[2024-04-18T08:34:06-07:00] Cleaning unused images...                    
-INFO[2024-04-18T08:34:06-07:00] Successfully cleaned unused images           
-INFO[2024-04-18T08:34:06-07:00] Cleaning old Kurtosis engine containers...   
-INFO[2024-04-18T08:34:06-07:00] Successfully cleaned old Kurtosis engine containers 
-INFO[2024-04-18T08:34:06-07:00] Cleaning enclaves...                         
-INFO[2024-04-18T08:34:07-07:00] Successfully removed the following enclaves: 
-f4994a5bc34f42278be2b6569a612b95        kurtosis-postgres
-INFO[2024-04-18T08:34:07-07:00] Successfully cleaned enclaves                
-INFO[2024-04-18T08:34:07-07:00] Creating a new enclave for Starlark to run inside... 
-INFO[2024-04-18T08:34:09-07:00] Enclave 'kurtosis-postgres' created successfully 
-INFO[2024-04-18T08:34:09-07:00] Executing Starlark package at '/home/wink/prgs/kt/wyfp/kurtosis-postgres' as the passed argument '.' looks like a directory 
-INFO[2024-04-18T08:34:09-07:00] Compressing package 'github.com/example-org/example-package' at '.' for upload 
-INFO[2024-04-18T08:34:09-07:00] Uploading and executing package 'github.com/example-org/example-package' 
+wink@3900x 24-04-19T00:01:48.895Z:~/prgs/kt/wyfp/kt-postgres (main)
+$ kt enclave rm -f kt-postgres && kt run --enclave kt-postgres .
+INFO[2024-04-18T17:01:57-07:00] Destroying enclaves...                       
+INFO[2024-04-18T17:01:58-07:00] Enclaves successfully destroyed              
+INFO[2024-04-18T17:01:58-07:00] Creating a new enclave for Starlark to run inside... 
+INFO[2024-04-18T17:02:00-07:00] Enclave 'kt-postgres' created successfully   
+INFO[2024-04-18T17:02:00-07:00] Executing Starlark package at '/home/wink/prgs/kt/wyfp/kt-postgres' as the passed argument '.' looks like a directory 
+INFO[2024-04-18T17:02:00-07:00] Compressing package 'github.com/example-org/example-package' at '.' for upload 
+INFO[2024-04-18T17:02:00-07:00] Uploading and executing package 'github.com/example-org/example-package' 
 
 Container images used in this run:
 > postgres:15.2-alpine - locally cached
 
-Uploading file './dvd-rental-data.tar' to files artifact 'tranquil-leaf'
-Files with artifact name 'tranquil-leaf' uploaded with artifact UUID '305184a9f7054790a472482328432b1a'
+Uploading file './dvd-rental-data.tar' to files artifact 'restless-driftwood'
+Files with artifact name 'restless-driftwood' uploaded with artifact UUID '45b3e904d5e547a8bc7b32b444dc4012'
 
 Adding service with name 'postgres' and image 'postgres:15.2-alpine'
-Service 'postgres' added with service UUID 'e991ddab3c434167a5ffdb383ba02998'
+Service 'postgres' added with service UUID '77ef20a95ef948a998f15a502e99628c'
 
 Executing command on service 'postgres'
 Command returned with exit code '0' with no output
@@ -293,31 +324,32 @@ Command returned with exit code '0' with no output
 Starlark code successfully run. No output was returned.
 
 ⭐ us on GitHub - https://github.com/kurtosis-tech/kurtosis
-INFO[2024-04-18T08:34:18-07:00] ========================================================== 
-INFO[2024-04-18T08:34:18-07:00] ||          Created enclave: kurtosis-postgres          || 
-INFO[2024-04-18T08:34:18-07:00] ========================================================== 
-Name:            kurtosis-postgres
-UUID:            761d6d6ce191
+INFO[2024-04-18T17:02:07-07:00] ==================================================== 
+INFO[2024-04-18T17:02:07-07:00] ||          Created enclave: kt-postgres          || 
+INFO[2024-04-18T17:02:07-07:00] ==================================================== 
+Name:            kt-postgres
+UUID:            d155f3f10a85
 Status:          RUNNING
-Creation Time:   Thu, 18 Apr 2024 08:34:07 PDT
+Creation Time:   Thu, 18 Apr 2024 17:01:58 PDT
 Flags:           
 
 ========================================= Files Artifacts =========================================
 UUID           Name
-305184a9f705   tranquil-leaf
+45b3e904d5e5   restless-driftwood
 
 ========================================== User Services ==========================================
 UUID           Name       Ports                                                Status
-e991ddab3c43   postgres   postgres: 5432/tcp -> postgresql://127.0.0.1:32779   RUNNING
+77ef20a95ef9   postgres   postgres: 5432/tcp -> postgresql://127.0.0.1:32819   RUNNING
+
 ```
 
 Verify there are tables and data in the database:
 
 ```bash
-wink@3900x 24-04-18T15:36:13.972Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-$ kurtosis service shell kurtosis-postgres postgres
+wink@3900x 24-04-19T00:02:59.863Z:~/prgs/kt/wyfp/kt-postgres (main)
+$ kt service shell kt-postgres postgres
 Found bash on container; creating bash shell...
-2f2fc46b126f:/# psql -U app_user -d app_db -c '\dt'
+7481362959aa:/# psql -U app_user -d app_db -c '\dt'
              List of relations
  Schema |     Name      | Type  |  Owner   
 --------+---------------+-------+----------
@@ -338,7 +370,7 @@ Found bash on container; creating bash shell...
  public | store         | table | app_user
 (15 rows)
 
-2f2fc46b126f:/# 
+7481362959aa:/# 
 ```
 
 ## Add API
@@ -461,59 +493,70 @@ wink@3900x 24-04-18T17:30:12.169Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
 And as you can see now there is a second service name 'api' with the port 3000 exposed
 as http://127.0.0.1:32790 :
 ```bash
-wink@3900x 24-04-18T17:34:14.459Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-$ kurtosis clean -a && kurtosis run --enclave kurtosis-postgres .
-INFO[2024-04-18T10:39:30-07:00] Cleaning unused images...                    
-INFO[2024-04-18T10:39:30-07:00] Successfully cleaned unused images           
-INFO[2024-04-18T10:39:30-07:00] Cleaning old Kurtosis engine containers...   
-INFO[2024-04-18T10:39:30-07:00] Successfully cleaned old Kurtosis engine containers 
-INFO[2024-04-18T10:39:30-07:00] Cleaning enclaves...                         
-INFO[2024-04-18T10:39:31-07:00] Successfully removed the following enclaves: 
-87b72e1961eb416398c93940071758c3        kurtosis-postgres
-INFO[2024-04-18T10:39:31-07:00] Successfully cleaned enclaves                
-INFO[2024-04-18T10:39:31-07:00] Creating a new enclave for Starlark to run inside... 
-INFO[2024-04-18T10:39:32-07:00] Enclave### Using the `api` service
+wink@3900x 24-04-19T17:04:41.336Z:~/prgs/kt/wyfp/kt-postgres (main)
+$ kt enclave rm -f kt-postgres && kt run --enclave kt-postgres .
+INFO[2024-04-19T10:04:59-07:00] Destroying enclaves...                       
+INFO[2024-04-19T10:04:59-07:00] Enclaves successfully destroyed              
+INFO[2024-04-19T10:04:59-07:00] Creating a new enclave for Starlark to run inside... 
+INFO[2024-04-19T10:05:02-07:00] Enclave 'kt-postgres' created successfully   
+INFO[2024-04-19T10:05:02-07:00] Executing Starlark package at '/home/wink/prgs/kt/wyfp/kt-postgres' as the passed argument '.' looks like a directory 
+INFO[2024-04-19T10:05:02-07:00] Compressing package 'github.com/example-org/example-package' at '.' for upload 
+INFO[2024-04-19T10:05:02-07:00] Uploading and executing package 'github.com/example-org/example-package' 
+
+Container images used in this run:
+> postgrest/postgrest:v10.2.0 - locally cached
+> postgres:15.2-alpine - locally cached
+
+Uploading file './dvd-rental-data.tar' to files artifact 'celestial-deer'
+Files with artifact name 'celestial-deer' uploaded with artifact UUID '36dcc7dd2bb84c599e3816acd9095361'
+
+Adding service with name 'postgres' and image 'postgres:15.2-alpine'
+Service 'postgres' added with service UUID 'e768d852b42d461091fd857e55e750ee'
+
+Executing command on service 'postgres'
+Command returned with exit code '0' with no output
 
 Adding service with name 'api' and image 'postgrest/postgrest:v10.2.0'
-Service 'api' added with service UUID '576ae74ba34840529f2f41aa0a5eeac0'
+Service 'api' added with service UUID '2f608b345e7449bdb22e6ad1f803750f'
 
 Starlark code successfully run. No output was returned.
 
 ⭐ us on GitHub - https://github.com/kurtosis-tech/kurtosis
-INFO[2024-04-18T10:39:40-07:00] ========================================================== 
-INFO[2024-04-18T10:39:40-07:00] ||          Created enclave: kurtosis-postgres          || 
-INFO[2024-04-18T10:39:40-07:00] ========================================================== 
-Name:            kurtosis-postgres
-UUID:            fbc020cfc586
+INFO[2024-04-19T10:05:10-07:00] ==================================================== 
+INFO[2024-04-19T10:05:10-07:00] ||          Created enclave: kt-postgres          || 
+INFO[2024-04-19T10:05:10-07:00] ==================================================== 
+Name:            kt-postgres
+UUID:            a2caa3acaeb9
 Status:          RUNNING
-Creation Time:   Thu, 18 Apr 2024 10:39:31 PDT
+Creation Time:   Fri, 19 Apr 2024 10:04:59 PDT
 Flags:           
 
 ========================================= Files Artifacts =========================================
 UUID           Name
-3ec305d93857   holy-flower
+36dcc7dd2bb8   celestial-deer
 
 ========================================== User Services ==========================================
 UUID           Name       Ports                                                Status
-576ae74ba348   api        http: 3000/tcp -> http://127.0.0.1:32790             RUNNING
-396d648b060f   postgres   postgres: 5432/tcp -> postgresql://127.0.0.1:32789   RUNNING
+2f608b345e74   api        http: 3000/tcp -> http://127.0.0.1:32770             RUNNING
+e768d852b42d   postgres   postgres: 5432/tcp -> postgresql://127.0.0.1:32769   RUNNING
 
-wink@3900x 24-04-18T17:39:40.533Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
 ```
 
 ### Query the database
 
-Here is a simple GET where we find actors with the first name of "Kevin":
+To prove there is real data we'll do a simple GET where
+we find actors with the first name of "Kevin":
 
 >Note: I used the `jq` command to format the JSON output and also I set an
 environment variable `API_PORT` to the port number of the `api` service.
 Use the `enclave inspect ENCLAVE_NAME` to get the port numbers.
 
 ```bash
-$ API_PORT=32790; curl -X GET "http://localhost:$API_PORT/actor?first_name=eq.Kevin" | jq
+wink@3900x 24-04-19T17:08:02.804Z:~/prgs/kt/wyfp/kt-postgres (main)
+$ API_PORT=32770; curl -X GET "http://localhost:$API_PORT/actor?first_name=eq.Kevin" | jq
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
-100   199    0   199    0     0  76450      0 --:--:-- --:--:-- --:--:-- 99500
+100   199    0   199    0     0  15301      0 --:--:-- --:--:-- --:--:-- 16583
 [
   {
     "actor_id": 25,
@@ -528,31 +571,67 @@ $ API_PORT=32790; curl -X GET "http://localhost:$API_PORT/actor?first_name=eq.Ke
     "last_update": "2013-05-26T14:47:57.62"
   }
 ]
-wink@3900x 24-04-18T20:05:33.029Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-$ 
 ```
 
-## For PostgREST the swagger output is at the root of the service
+### Add an actor
 
-You can use `curl -X GET` to access it:
+Adding another Kevin, Kevin Bacon, to the database
+and now there will be 3 entries:
+
+> Note: The `API_PORT` is already set to 32770 we don't need to set it again.
 ```bash
-wink@3900x 24-04-18T17:56:53.817Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-$ curl -X GET "http://127.0.0.1:32790" | jq > PostgREST.json
+wink@3900x 24-04-19T17:24:03.748Z:~/prgs/kt/wyfp/kt-postgres (main)
+$ echo $API_PORT
+32770
+wink@3900x 24-04-19T17:24:11.524Z:~/prgs/kt/wyfp/kt-postgres (main)
+$ curl -X POST -H "content-type: application/json" http://127.0.0.1:$API_PORT/actor --data '{"first_name": "Kevin", "last_name": "Bacon"}'
+wink@3900x 24-04-19T17:24:52.080Z:~/prgs/kt/wyfp/kt-postgres (main)
+$ curl -X GET "http://localhost:$API_PORT/actor?first_name=eq.Kevin" | jq
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
-100 69260    0 69260    0     0  2001k      0 --:--:-- --:--:-- --:--:-- 2049k
-wink@3900x 24-04-18T17:57:56.126Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-$ ls -lh PostgREST.json 
--rw-r--r-- 1 wink users 118K Apr 18 10:57 PostgREST.json
-wink@3900x 24-04-18T17:59:30.607Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-$ cat PostgREST.json | wc -l
-5008
-wink@3900x 24-04-18T18:02:31.448Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
+100   303    0   303    0     0   114k      0 --:--:-- --:--:-- --:--:--  147k
+[
+  {
+    "actor_id": 25,
+    "first_name": "Kevin",
+    "last_name": "Bloom",
+    "last_update": "2013-05-26T14:47:57.62"
+  },
+  {
+    "actor_id": 127,
+    "first_name": "Kevin",
+    "last_name": "Garland",
+    "last_update": "2013-05-26T14:47:57.62"
+  },
+  {
+    "actor_id": 201,
+    "first_name": "Kevin",
+    "last_name": "Bacon",
+    "last_update": "2024-04-19T17:24:52.072359"
+  }
+]
 ```
 
-Results showing the first and last 20 lies of the PostgREST.json file:
+## PostgREST OpenAPI description
+
+Beyond the goals of this I accidentally stumbled across
+this when I did a GET on the root of the service. So I've
+added it here. Here is a relavent page
+https://postgrest.org/en/v12/references/api/openapi.html.
 ```bash
-wink@3900x 24-04-18T18:13:25.149Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
+wink@3900x 24-04-19T17:35:50.341Z:~/prgs/kt/wyfp/kt-postgres (main)
+$ curl -X GET "http://localhost:$API_PORT" | jq > PostgREST.json
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100 69260    0 69260    0     0   511k      0 --:--:-- --:--:-- --:--:--  512k
+wink@3900x 24-04-19T17:35:58.434Z:~/prgs/kt/wyfp/kt-postgres (main)
+$ cat PostgREST.json | wc -l
+5008
+```
+
+Here are the first and last 20 lies of the PostgREST.json file:
+```bash
+wink@3900x 24-04-19T17:36:12.254Z:~/prgs/kt/wyfp/kt-postgres (main)
 $ head -20 PostgREST.json 
 {
   "swagger": "2.0",
@@ -574,7 +653,7 @@ $ head -20 PostgREST.json
   "produces": [
     "application/json",
     "application/vnd.pgrst.object+json",
-wink@3900x 24-04-18T18:13:31.913Z:~/prgs/kt/wyfp/kurtosis-postgres (main)      
+wink@3900x 24-04-19T17:37:31.314Z:~/prgs/kt/wyfp/kt-postgres (main)
 $ tail -20 PostgREST.json 
     "rowFilter.city.country_id": {
       "name": "country_id",
@@ -596,95 +675,6 @@ $ tail -20 PostgREST.json
     "url": "https://postgrest.org/en/v10.2/api.html"
   }
 }
-wink@3900x 24-04-18T18:14:41.734Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-```
-
-## Use the PostgREST API to modify the database
-
-API_PORT=32802; curl -X POST -H "content-type: application/json" http://127.0.0.1:$API_PORT/actor --data '{"first_name": "Kevin", "last_name": "Bacon"}'
-
-### Set API_PORT for the `api` service
-
-```bash
-kt enclave inspect kurtosis-postgreswink@3900x 24-04-18T20:26:47.471Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-$ kt enclave inspect kurtosis-postgres
-Name:            kurtosis-postgres
-UUID:            9c93d04ba13b
-Status:          RUNNING
-Creation Time:   Thu, 18 Apr 2024 12:57:34 PDT
-Flags:           
-
-========================================= Files Artifacts =========================================
-UUID           Name
-38d255fc527f   winter-ivy
-
-========================================== User Services ==========================================
-UUID           Name       Ports                                                Status
-bb9e41a2ce36   api        http: 3000/tcp -> http://127.0.0.1:32802             RUNNING
-6e5794a11575   postgres   postgres: 5432/tcp -> postgresql://127.0.0.1:32801   RUNNING
-
-wink@3900x 24-04-18T20:27:04.962Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-$ API_PORT=32802
-wink@3900x 24-04-18T20:27:23.182Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-```
-
-### Query the database for actors with the first name of "Kevin"
-
-```bash
-wink@3900x 24-04-18T20:27:23.182Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-$ curl -X GET "http://localhost:$API_PORT/actor?first_name=eq.Kevin" | jq
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100   199    0   199    0     0  10874      0 --:--:-- --:--:-- --:--:-- 11055
-[
-  {
-    "actor_id": 25,
-    "first_name": "Kevin",
-    "last_name": "Bloom",
-    "last_update": "2013-05-26T14:47:57.62"
-  },
-  {
-    "actor_id": 127,
-    "first_name": "Kevin",
-    "last_name": "Garland",
-    "last_update": "2013-05-26T14:47:57.62"
-  }
-]
-wink@3900x 24-04-18T20:29:03.376Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-```
-
-### Add an actor
-
-Adding Kevin Bacon to the database and now there will be 3 entries:
-```bash
-wink@3900x 24-04-18T20:29:03.376Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-$ curl -X POST -H "content-type: application/json" http://127.0.0.1:$API_PORT/actor --data '{"first_name": "Kevin", "last_name": "Bacon"}'
-wink@3900x 24-04-18T20:30:36.197Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
-$ curl -X GET "http://localhost:$API_PORT/actor?first_name=eq.Kevin" | jq
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100   303    0   303    0     0   120k      0 --:--:-- --:--:-- --:--:--  147k
-[
-  {
-    "actor_id": 25,
-    "first_name": "Kevin",
-    "last_name": "Bloom",
-    "last_update": "2013-05-26T14:47:57.62"
-  },
-  {
-    "actor_id": 127,
-    "first_name": "Kevin",
-    "last_name": "Garland",
-    "last_update": "2013-05-26T14:47:57.62"
-  },
-  {
-    "actor_id": 201,
-    "first_name": "Kevin",
-    "last_name": "Bacon",
-    "last_update": "2024-04-18T20:30:36.178571"
-  }
-]
-wink@3900x 24-04-18T20:30:43.248Z:~/prgs/kt/wyfp/kurtosis-postgres (main)
 ```
 
 ## License
